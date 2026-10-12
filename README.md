@@ -2,7 +2,8 @@
 
 Spring Boot service for sustained reefer temperature alerts (`HIGH_TEMP` and `LOW_TEMP`). Pair with the [frontend repo](https://github.com/siddharth8763/nimbus-freight-frontend).
 
-Design notes: [SOLUTION_DESIGN.md](SOLUTION_DESIGN.md).
+- [SOLUTION_DESIGN.md](SOLUTION_DESIGN.md) — assumptions and trade-offs (hackathon)
+- [../DOCUMENTATION.md](../DOCUMENTATION.md) — full technical documentation
 
 ## Prerequisites
 

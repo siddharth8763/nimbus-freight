@@ -1,5 +1,7 @@
 # Nimbus Freight — solution design
 
+> **Full technical reference:** [../DOCUMENTATION.md](../DOCUMENTATION.md) (architecture, API, data model, testing).
+
 ## Problem
 
 Nimbus Freight hauls temperature-sensitive pharma and grocery loads in refrigerated trucks. Each truck reports a temperature every few minutes. Today, operations is paged on **every** reading outside a limit. Door openings, defrost cycles, and sensor noise look the same as a reefer that is actually failing, so dispatch has started ignoring the feed and can miss a real spoilage or freeze event.
@@ -8,7 +10,7 @@ We need one alert per **sustained** problem on a specific truck, not a page per 
 
 ## Assumptions
 
-These are product choices, not facts from the brief. They live in `backend/src/main/resources/application.yml` as `nimbus.alert.*`.
+These are product choices, not facts from the brief. They live in `src/main/resources/application.yml` as `nimbus.alert.*`.
 
 1. **Safe band.** Pharma reefers are commonly held at 2–8°C. We warn **early**, inside that band, rather than waiting until cargo is already out of spec at 8°C.
 2. **Too warm.** A warm episode starts when temperature is **strictly above 5.0°C**. A `HIGH_TEMP` alert opens only after the episode has lasted **at least 15 minutes** of sensor time (not “N readings”).
@@ -40,6 +42,10 @@ Dashboard **OK** means no open alert, no in-progress episode, and the latest rea
 | Interpolate missing samples | Same problem, with fake data in the chart. |
 | Page on every out-of-order spike | Late packets would reopen old incidents. We keep them for the chart and ignore them for state. |
 
+## Architecture (summary)
+
+React dashboard → Spring Boot REST → `ReadingIngestService` → `TemperatureAlertEngine` → MySQL (or H2 in `dev` profile). State per truck in `truck_alert_state`; incidents in `alerts`. See [../DOCUMENTATION.md](../DOCUMENTATION.md) for diagrams and API tables.
+
 ## How a reading becomes an alert
 
 ```text
@@ -52,7 +58,7 @@ sensor reading
   -> open at most one alert, or resolve / supersede the open one
 ```
 
-Processing is synchronous in the API process. There is no queue. `POST /api/admin/replay-seed` loads `data/seed/readings.csv`, sorts by time, and runs the same ingest path. That is enough to demo five trucks and to re-run the file without duplicating alerts.
+Processing is synchronous in the API process. There is no queue. `POST /api/admin/replay-seed` loads `data/seed/readings.csv`, sorts by time, and runs the same ingest path.
 
 ## If we had more time
 
