@@ -11,6 +11,16 @@ The backend and frontend were developed as separate repositories. Their commits 
 
 ## Quick start
 
+From this folder, one command starts MySQL, the API, and the dashboard. Docker Desktop must be running, and `JAVA_HOME` must point at a JDK.
+
+```powershell
+.\start.ps1
+```
+
+That opens two more windows: Spring Boot on http://localhost:8080 and Vite on http://localhost:5173. MySQL listens on `localhost:3306`. When the UI loads, choose **Replay seed data**.
+
+To start the pieces yourself:
+
 ```powershell
 cd backend
 docker compose up -d
