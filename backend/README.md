@@ -23,7 +23,24 @@ API: http://localhost:8080 — replay seed with `POST /api/admin/replay-seed`.
 
 Thresholds and seed path: `src/main/resources/application.yml` (`nimbus.alert.*`, `nimbus.seed-path`).
 
-Optional alert summaries: set `OPENAI_API_KEY` before starting the app.
+Optional alert summaries: set `LLM_API_KEY`. If that is empty, `OPENAI_API_KEY` is still accepted. The model only rewrites the sentence; it does not decide whether to alert.
+
+OpenAI (default):
+
+```powershell
+$env:LLM_API_KEY = "sk-..."
+.\mvnw.cmd spring-boot:run
+```
+
+DeepSeek (OpenAI-compatible chat API):
+
+```powershell
+$env:LLM_API_KEY = "your-deepseek-key"
+$env:SPRING_PROFILES_ACTIVE = "deepseek"
+.\mvnw.cmd spring-boot:run
+```
+
+That profile sets `base-url` to `https://api.deepseek.com/v1` and `model` to `deepseek-chat`. With H2 local storage, use `dev,deepseek`. See `.env.example`. If the call fails, the fixed template sentence is stored.
 
 ## Tests
 

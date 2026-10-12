@@ -62,4 +62,4 @@ Processing is synchronous in the API process. There is no queue. `POST /api/admi
 
 ## If we had more time
 
-Per-cargo set points, a stale-telemetry alert, defrost-aware patterns, operator acknowledge / snooze, webhooks to dispatch, and more than one sensor per trailer. The optional plain-English summary (`OPENAI_API_KEY`) only rewrites the alert sentence; the decision to alert is entirely the rule engine.
+Per-cargo set points, a stale-telemetry alert, defrost-aware patterns, operator acknowledge / snooze, webhooks to dispatch, and more than one sensor per trailer. The optional plain-English summary (`LLM_API_KEY`, or `OPENAI_API_KEY` if that is unset) only rewrites the alert sentence; the decision to alert is entirely the rule engine. DeepSeek works with the `deepseek` Spring profile.
