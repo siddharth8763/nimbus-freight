@@ -2,7 +2,7 @@ package com.nimbusfreight.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusfreight.config.AlertPolicy;
-import com.nimbusfreight.config.OpenAiProperties;
+import com.nimbusfreight.config.LlmProperties;
 import com.nimbusfreight.domain.AlertType;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +14,7 @@ class AlertSummaryServiceTest {
 
     @Test
     void usesTemplateWhenApiKeyMissing() {
-        OpenAiProperties properties = new OpenAiProperties();
+        LlmProperties properties = new LlmProperties();
         AlertSummaryService service = new AlertSummaryService(properties, new AlertPolicy(), new ObjectMapper());
 
         String warm = service.summarize("Aurora", AlertType.HIGH_TEMP, new BigDecimal("9.2"), 15);

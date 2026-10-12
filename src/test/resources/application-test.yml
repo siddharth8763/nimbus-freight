@@ -13,5 +13,5 @@ spring:
 
 nimbus:
   seed-path: classpath:seed/readings.csv
-  openai:
+  llm:
     api-key: ""

@@ -31,7 +31,8 @@ nimbus:
     gap-reset-minutes: 30
     min-valid-temp-c: "-50"
     max-valid-temp-c: "50"
-  openai:
-    api-key: ${OPENAI_API_KEY:}
-    model: gpt-4o-mini
-    base-url: https://api.openai.com/v1
+  llm:
+    api-key: ${LLM_API_KEY:${OPENAI_API_KEY:}}
+    model: ${LLM_MODEL:gpt-4o-mini}
+    base-url: ${LLM_BASE_URL:https://api.openai.com/v1}
+    provider: openai
