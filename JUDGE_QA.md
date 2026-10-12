@@ -188,7 +188,7 @@ A. Nobody, in v1. It stays open. There is no ack, snooze, or manual resolve. Tha
 
 **Q. You have an LLM in the design. Does it decide the alert?**
 
-A. No. The rule engine decides. If `OPENAI_API_KEY` is set, the model may rewrite the sentence. If the call fails or the key is missing, a fixed sentence is stored. Pull the key and the alerts are identical.
+A. No. The rule engine decides. If `LLM_API_KEY` is set (or the older `OPENAI_API_KEY`), the model may rewrite the sentence. The default endpoint is OpenAI; the `deepseek` profile points at DeepSeek’s compatible API. If the call fails or the key is missing, a fixed sentence is stored. Pull the key and the alerts are identical.
 
 ---
 

@@ -229,10 +229,12 @@ $env:SPRING_PROFILES_ACTIVE = "dev"
 
 Uses embedded H2 file DB at `backend/.data/nimbus-dev` (`application-dev.yml`).
 
-**Optional OpenAI summaries**
+**Optional alert summaries**
 
-- Env: `OPENAI_API_KEY`
-- On alert create, rewrites template sentence; failures fall back to deterministic text.
+- Env: `LLM_API_KEY` (falls back to `OPENAI_API_KEY` if unset)
+- Default endpoint: OpenAI `gpt-4o-mini` at `https://api.openai.com/v1`
+- DeepSeek: set the key and `SPRING_PROFILES_ACTIVE=deepseek` (`application-deepseek.yml` uses `deepseek-chat` at `https://api.deepseek.com/v1`)
+- On alert create, rewrites the template sentence; failures fall back to deterministic text.
 - **Does not** affect whether an alert fires.
 
 ---
