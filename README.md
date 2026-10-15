@@ -2,19 +2,22 @@
 
 Hackathon project: sustained temperature alerts for refrigerated trucks (warm + freeze), with alert fatigue handled in the rule engine.
 
-This folder groups **two git repositories**:
+**Submission (monorepo):** https://github.com/siddharth8763/nimbus-freight — `backend/`, `frontend/`, `starter_kit/`, design docs, and `start.ps1` in one clone.
+
+This folder can also be laid out as **two git repositories** for day-to-day work:
 
 | Directory | GitHub |
 | --- | --- |
 | [`backend/`](backend/) | https://github.com/siddharth8763/nimbus-freight-backend |
 | [`frontend/`](frontend/) | https://github.com/siddharth8763/nimbus-freight-frontend |
 
-Clone both next to each other:
-
 ```text
 nimbus-freight/
   backend/
   frontend/
+  starter_kit/          # case-study seed + alert_utils.py
+  case-study-brief.md
+  SOLUTION_DESIGN.md
 ```
 
 ## Quick start
