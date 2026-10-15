@@ -1,59 +1,42 @@
 # Nimbus Freight
 
-Sustained temperature alerts for refrigerated trucks. One repository, two apps:
+Hackathon project: sustained temperature alerts for refrigerated trucks (warm + freeze), with alert fatigue handled in the rule engine.
+
+This folder groups **two git repositories**:
+
+| Directory | GitHub |
+| --- | --- |
+| [`backend/`](backend/) | https://github.com/siddharth8763/nimbus-freight-backend |
+| [`frontend/`](frontend/) | https://github.com/siddharth8763/nimbus-freight-frontend |
+
+Clone both next to each other:
 
 ```text
-backend/     Spring Boot API and alert engine
-frontend/    React dashboard
+nimbus-freight/
+  backend/
+  frontend/
 ```
-
-The backend and frontend were developed as separate repositories. Their commits are imported under those folders, so `git log` still shows the original history.
 
 ## Quick start
 
-From this folder, one command starts MySQL, the API, and the dashboard. Docker Desktop must be running, and `JAVA_HOME` must point at a JDK.
+From this folder, one command starts MySQL, the API, and the dashboard. Docker Desktop must be running, and `JAVA_HOME` must point at a JDK (the script uses it if it is already set).
 
 ```powershell
 .\start.ps1
 ```
 
-That opens two more windows: Spring Boot on http://localhost:8080 and Vite on http://localhost:5173. MySQL listens on `localhost:3306`. When the UI loads, choose **Replay seed data**.
+That opens two more windows: Spring Boot on http://localhost:8080 and Vite on http://localhost:5173. MySQL listens on `localhost:3306` (database `nimbus`, user `nimbus`, password `nimbus`). When the UI loads, choose **Replay seed data**.
 
 To start the pieces yourself:
 
-```powershell
-cd backend
-docker compose up -d
-.\mvnw.cmd spring-boot:run
-```
+1. `cd backend` → `docker compose up -d` → `.\mvnw.cmd spring-boot:run`
+2. `cd frontend` → `npm install` → `npm run dev`
 
-Without Docker, from `backend`:
-
-```powershell
-$env:JAVA_HOME = "D:\Softwares\JDK"
-$env:SPRING_PROFILES_ACTIVE = "dev"
-.\mvnw.cmd spring-boot:run
-```
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:5173 and choose **Replay seed data**.
-
-## Documentation
+**Documentation**
 
 | Doc | Contents |
 | --- | --- |
-| [DOCUMENTATION.md](DOCUMENTATION.md) | Architecture, assumptions, trade-offs, API, data model, tests |
-| [JUDGE_QA.md](JUDGE_QA.md) | Judge questions, edge cases, and design trade-offs |
-| [backend/SOLUTION_DESIGN.md](backend/SOLUTION_DESIGN.md) | Short hackathon solution design |
-| [backend/README.md](backend/README.md) | Backend run and configuration |
+| [DOCUMENTATION.md](DOCUMENTATION.md) | Technical reference: architecture, assumptions, trade-offs, API, data model, testing |
+| [backend/SOLUTION_DESIGN.md](backend/SOLUTION_DESIGN.md) | Hackathon solution design (concise) |
+| [backend/README.md](backend/README.md) | Backend run & config |
 | [frontend/README.md](frontend/README.md) | Frontend run |
-
-Earlier split remotes, kept for reference:
-
-- https://github.com/siddharth8763/nimbus-freight-backend
-- https://github.com/siddharth8763/nimbus-freight-frontend

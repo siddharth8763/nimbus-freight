@@ -85,12 +85,12 @@ These are **documented product choices**, not facts from the customer brief. All
 
 | # | Assumption | Default / behavior |
 | --- | --- | --- |
-| A1 | Pharma reefers are commonly controlled in a **2–8°C** band | We warn **before** regulatory ceiling (8°C) |
-| A2 | **Early warm warning** | Alert path starts at **> 5.0°C**, not at 8°C |
-| A3 | **Freeze risk** matters for pharma/grocery | Alert path starts at **< 2.0°C** |
-| A4 | **Sustained** means **wall-clock** sensor time | **15 minutes** in violation before OPEN |
-| A5 | **Hysteresis** prevents flap | Warm resolves at **≤ 4.0°C** for **10 min**; freeze resolves at **≥ 3.0°C** for **10 min** |
-| A6 | Boundaries are strict | Warm: `>` / `≤`; freeze: `<` / `≥` (exactly 5.0°C is not “warm”) |
+| A1 | Pharma reefers are commonly controlled in a **2–8°C** band | The starter file’s quiet trucks sit at 6–7°C |
+| A2 | **Too warm** is above that band | Alert path starts at **> 8.0°C**. A 5°C line would page every truck in the file |
+| A3 | **Freeze risk** matters for pharma/grocery | Alert path starts at **< 2.0°C**. This hour has no freeze sample |
+| A4 | **Sustained** means **wall-clock** sensor time | **15 minutes** in violation before OPEN. A missing sample does not shrink the count |
+| A5 | **Hysteresis** prevents flap | Warm resolves at **≤ 7.0°C** for **10 min**; freeze resolves at **≥ 3.0°C** for **10 min** |
+| A6 | Boundaries are strict | Warm: `>` / `≤`; freeze: `<` / `≥` (exactly 8.0°C is not “warm”) |
 | A7 | **One OPEN alert per truck** | Opposite sustained violation **supersedes** the open alert |
 | A8 | Short opposite blip does **not** resolve open alert | e.g. brief freeze while warm alert is open |
 | A9 | **New incident** after RESOLVED is allowed | Second failure next day → new alert |
@@ -104,11 +104,11 @@ These are **documented product choices**, not facts from the customer brief. All
 
 | Status | Meaning |
 | --- | --- |
-| `OK` | No open alert, no active episode; latest temp in safe band **3.0–5.0°C** |
-| `WARMING` | Above 5°C episode started, sustain not met |
+| `OK` | No open alert, no active episode; latest temp in safe band **3.0–8.0°C** |
+| `WARMING` | Above 8°C episode started, sustain not met |
 | `FREEZING` | Below 2°C episode started, sustain not met |
 | `ALERT_HIGH` / `ALERT_LOW` | Open `HIGH_TEMP` or `LOW_TEMP` alert |
-| `WATCH` | Latest temp outside safe band but no episode/alert (e.g. between 5°C and resolve band) |
+| `WATCH` | Latest temp outside safe band but no episode/alert (for example 2.5°C) |
 | `NO_DATA` | No readings yet |
 
 ### 3.3 Questions we would ask the customer
@@ -177,7 +177,7 @@ When opening a new alert type while the opposite type is OPEN → resolve opposi
 
 | Table | Purpose |
 | --- | --- |
-| `trucks` | `id`, `name`, `cargo_type` — seeded (NF-01 … NF-05) |
+| `trucks` | `id`, `name`, `cargo_type` — seeded (T-01 … T-05) |
 | `sensor_readings` | `truck_id`, `temperature_c`, `recorded_at`; unique `(truck_id, recorded_at)` |
 | `alerts` | `type` (`HIGH_TEMP`/`LOW_TEMP`), `status`, `started_at`, `resolved_at`, `peak_temp_c`, `min_temp_c`, `resolution_reason`, `message` |
 | `truck_alert_state` | Per-truck engine state: last processed time, episode timers, open alert ids |
@@ -198,7 +198,7 @@ Base URL: `http://localhost:8080` (CORS allows `http://localhost:5173`).
 | `GET` | `/api/alerts` | Alerts; optional `status`, `truckId` (OPEN first) |
 | `GET` | `/api/policy` | Active threshold configuration |
 | `POST` | `/api/readings` | Body: `{ truckId, temperatureC, recordedAt }` |
-| `POST` | `/api/admin/replay-seed` | Load `data/seed/readings.csv` in timestamp order |
+| `POST` | `/api/admin/replay-seed` | Load `sensor_readings.json` in timestamp order |
 
 **Ingest results** (`POST /api/readings`): `PROCESSED`, `DUPLICATE`, `STORED_OUT_OF_ORDER`.
 
@@ -218,7 +218,7 @@ Base URL: `http://localhost:8080` (CORS allows `http://localhost:5173`).
 **Production (default `application.yml`)**
 
 - MySQL: `jdbc:mysql://localhost:3306/nimbus`, user/password `nimbus`
-- Seed file: `data/seed/readings.csv` (also on classpath under `src/main/resources/seed/`)
+- Seed file: `starter_kit/data/sensor_readings.json`, copied to `backend/src/main/resources/seed/sensor_readings.json`
 
 **Local without Docker (`dev` profile)**
 
@@ -241,15 +241,17 @@ Uses embedded H2 file DB at `backend/.data/nimbus-dev` (`application-dev.yml`).
 
 ## 10. Seed scenarios (demo)
 
-File: `backend/data/seed/readings.csv`
+File: `starter_kit/data/sensor_readings.json` (classpath copy used at runtime). Replay sorts by time, then truck id. Humidity is ignored.
 
 | Truck | Scenario |
 | --- | --- |
-| NF-01 Aurora | Warm blip (no alert); freeze blip in progress → **FREEZING** |
-| NF-02 Borealis | Sustained warm → resolved → second warm → **OPEN** |
-| NF-03 Cirrus | Freeze blip; then sustained freeze → **OPEN LOW_TEMP** |
-| NF-04 Drift | Warm spell broken by 45 min gap (no alert); short warm-up → **WARMING** |
-| NF-05 Ember | Early spike ignored; sustained warm; duplicate timestamp; 999°C rejected |
+| T-01 Sustained | Above 8°C from 08:10–08:40 → one open `HIGH_TEMP`, peak 9.6°C |
+| T-02 Blip | One sample at 8.9°C → no alert, status **OK** |
+| T-03 Steady | 5.8–7.0°C the whole hour → no alert, status **OK** |
+| T-04 Gap | Five-minute spike, then 08:25–08:45 with 08:35 missing → one open `HIGH_TEMP`, peak 9.1°C |
+| T-05 Shuffled | Same temperatures as T-01, unsorted in the file → same open alert after the sort |
+
+The three open alerts have not had 10 minutes at or below 7°C, so they stay open. Freeze, a second incident, a gap over 30 minutes, duplicates, and a rejected 999°C row are covered by unit tests, not by this hour of data.
 
 ---
 

@@ -2,7 +2,7 @@
 
 How to use it: answer out loud in under a minute. The **Trap** line is the follow-up that usually comes next. If you do not know, say what you assumed and what you would ask the customer. Do not invent behavior the code does not have.
 
-Defaults, unless a question says otherwise: warm above **5.0°C** for **15 min**, resolve at or below **4.0°C** for **10 min**. Freeze below **2.0°C** for **15 min**, resolve at or above **3.0°C** for **10 min**. Gap reset **more than 30 min**. Time is the **sensor timestamp**, not when the server received the row.
+Defaults, unless a question says otherwise: warm above **8.0°C** for **15 min**, resolve at or below **7.0°C** for **10 min**. Freeze below **2.0°C** for **15 min**, resolve at or above **3.0°C** for **10 min**. Gap reset **more than 30 min**. Time is the **sensor timestamp**, not when the server received the row. The demo file is the starter hour, trucks **T-01 through T-05**.
 
 ---
 
@@ -10,9 +10,9 @@ Defaults, unless a question says otherwise: warm above **5.0°C** for **15 min**
 
 **Q. The brief never defined “too warm” or “too long.” Why should we trust your numbers?**
 
-A. They are assumptions, not facts. I anchored them to a typical pharma reefer band of 2–8°C, then warned *early*: page only after 15 minutes above 5°C, not on the first sample and not only after the load is already at 8°C. Fifteen minutes is longer than a door-open blip and short enough to act. Every number is in `application.yml`. I would ask operations for the real set point and the maximum minutes before they call the driver.
+A. They are assumptions, not facts. The starter file’s quiet trucks sit around 6–7°C, and the bad samples are above 8°C, which is the top of the usual 2–8°C pharma band. I page only after 15 minutes strictly above 8°C. Fifteen minutes is longer than a door-open blip and short enough to act. It is wall-clock time, so T-04’s missing 08:35 sample does not shrink a real 20-minute spell down to “15 minutes of readings.” Every number is in `application.yml`.
 
-Trap: “So you might be paging too early.” Yes. Early warning trades some extra alerts for not waiting until cargo is already out of spec. If they want 8°C for 30 minutes, it is a config change, not a rewrite.
+Trap: “So a truck at 7.5°C for an hour stays quiet.” Yes. That is inside the band. If operations wants an earlier page, the threshold is one config value. A 5°C line would have alerted all five trucks in their file.
 
 **Q. The brief only mentioned too warm. Why freeze alerts?**
 
@@ -26,19 +26,19 @@ A. Dispatch trust. One open incident per truck, no page per reading, no second p
 
 ## 2. What counts as a violation
 
-**Q. A reading is exactly 5.0°C for an hour. Alert?**
+**Q. A reading is exactly 8.0°C for an hour. Alert?**
 
-A. No. Warm starts only when temperature is **strictly above** 5.0. Five on the nose is not a warm episode.
+A. No. Warm starts only when temperature is **strictly above** 8.0. Eight on the nose is not a warm episode.
 
 **Q. Exactly 2.0°C for an hour?**
 
 A. No. Freeze starts only when temperature is **strictly below** 2.0.
 
-**Q. 5.1°C for 14 minutes, then back to 4°C?**
+**Q. 8.5°C for 10 minutes, then back to 6°C?**
 
-A. No alert. Status can show **Warming** while the episode is open. When it leaves the warm range before 15 minutes, the warm timer is cleared. That is the blip filter. NF-01 demonstrates a short warm blip.
+A. No alert. Status can show **Warming** while the episode is open. When it leaves the warm range before 15 minutes, the warm timer is cleared. That is the blip filter. T-02 is one sample at 8.9°C. T-04’s first spike is only five minutes.
 
-**Q. 5.1°C at t=0 and the next reading is 5.1°C at t=15?**
+**Q. 8.5°C at t=0 and the next reading is 8.5°C at t=15?**
 
 A. One `HIGH_TEMP` alert. Sustain is `>= 15 minutes` of sensor time from the first warm reading to the current one. `started_at` is that first warm reading, not the moment we decided to page. The page is created on the reading that crosses the line.
 
@@ -54,25 +54,25 @@ A. No alert. The reading that would have proved 15 minutes is no longer a violat
 
 **Q. What about 2.5°C sitting there all day?**
 
-A. No freeze alert. 2.5 is not below 2. It is also outside the dashboard “OK” band (3.0–5.0), so the truck shows **Watch**, not OK and not Freezing. I would flag that band to the customer: Watch means “not in the comfort band, not yet an incident.”
+A. No freeze alert. 2.5 is not below 2. It is also outside the dashboard “OK” band (3.0–8.0), so the truck shows **Watch**, not OK and not Freezing. I would flag that band to the customer: Watch means “not in the comfort band, not yet an incident.”
 
 ---
 
 ## 3. Hysteresis and the dead zone
 
-**Q. Why not resolve as soon as it drops back through 5°C?**
+**Q. Why not resolve as soon as it drops back through 8°C?**
 
-A. A truck hovering at 4.9 / 5.1 would open and close all day. Resolve requires **at or below 4°C for 10 minutes**. The 1°C gap is hysteresis.
+A. A truck hovering at 7.9 / 8.1 would open and close all day. Resolve requires **at or below 7°C for 10 minutes**. The 1°C gap is hysteresis. T-01 ends at exactly 7.0°C, so the resolve clock starts and the file ends before 10 minutes. The alert stays open.
 
-**Q. It has an open warm alert and sits at 4.5°C for two hours.**
+**Q. It has an open warm alert and sits at 7.5°C for two hours.**
 
-A. The alert **stays open**. 4.5 is not above 5, so it is not still “in violation,” and it is not at or below 4, so the resolve clock never starts. The dead zone is intentional: we do not call it recovered until it is clearly back. Same idea on freeze: an open freeze alert stays open while temperature is between 2 and 3.
+A. The alert **stays open**. 7.5 is not above 8, so it is not still “in violation,” and it is not at or below 7, so the resolve clock never starts. The dead zone is intentional: we do not call it recovered until it is clearly back. Same idea on freeze: an open freeze alert stays open while temperature is between 2 and 3.
 
-Trap: “That could leave a stale page.” Yes, until it spends 10 minutes at or below 4, or a human closes it. v1 has no acknowledge/snooze. I would tell ops that recovery is strict on purpose.
+Trap: “That could leave a stale page.” Yes, until it spends 10 minutes at or below 7, or a human closes it. v1 has no acknowledge/snooze. I would tell ops that recovery is strict on purpose.
 
-**Q. Resolve clock starts, then one reading pops back to 4.5°C.**
+**Q. Resolve clock starts, then one reading pops back to 7.5°C.**
 
-A. The resolve timer **clears**. It is not accumulated credit. They need **10 continuous minutes** at or below 4, measured from the first cool reading to a later reading that is still cool.
+A. The resolve timer **clears**. It is not accumulated credit. They need **10 continuous minutes** at or below 7, measured from the first cool reading to a later reading that is still cool.
 
 **Q. First cool reading is 3.5°C and the next cool reading is 10 minutes later.**
 
@@ -88,11 +88,11 @@ A. One. While it is open we only update `peak_temp_c`. We do not page again.
 
 **Q. It recovers properly, then overheats again tomorrow.**
 
-A. A **second** alert. A new episode after `RESOLVED` is a new incident. NF-02 is this case: one resolved warm alert, then a second one left open. The first peak was 9.2°C; the open one tracks its own peak (8.6°C).
+A. A **second** alert. A new episode after `RESOLVED` is a new incident. The starter hour does not show this; `TemperatureAlertEngineTest` does. Each open alert keeps its own peak.
 
 **Q. Why can a truck have only one open alert?**
 
-A. Temperature cannot be both above 5 and below 2. Two open pages for one box is how the old system trained people to ignore it. If a warm incident **becomes** a sustained freeze, the warm alert closes as `SUPERSEDED` and a freeze alert opens.
+A. Temperature cannot be both above 8 and below 2. Two open pages for one box is how the old system trained people to ignore it. If a warm incident **becomes** a sustained freeze, the warm alert closes as `SUPERSEDED` and a freeze alert opens.
 
 **Q. Open warm alert, then 1°C for 5 minutes, then back to 4°C.**
 
@@ -108,7 +108,7 @@ A. Warm alert becomes `RESOLVED` / `SUPERSEDED`. A `LOW_TEMP` alert opens. `star
 
 **Q. Warm for 10 minutes, no data for 45 minutes, then 8°C again.**
 
-A. **No alert yet.** A gap **longer than 30 minutes** clears episode timers. The post-gap reading starts a **new** warm clock. We do not pretend the trailer stayed hot during an outage. Exactly 30 minutes does **not** reset; only **more than** 30. NF-04 is the gap case.
+A. **No alert yet.** A gap **longer than 30 minutes** clears episode timers. The post-gap reading starts a **new** warm clock. We do not pretend the trailer stayed hot during an outage. Exactly 30 minutes does **not** reset; only **more than** 30. T-04’s missing 08:35 is only 10 minutes, so that spell is **not** reset and it does alert. The over-30 case is in the engine test, not in this file.
 
 Trap: “You might miss a failure that started before the outage.” Correct. Bridging the gap would page on a guess. I would rather restart the clock.
 
@@ -140,11 +140,11 @@ Trap: “What if the first one was wrong?” v1 has no correction API. A correct
 
 **Q. Temperature is null, or 999°C.**
 
-A. Rejected. Valid range is **-50 to 50°C**. Nothing is stored and state does not move. NF-05 includes a 999°C row that the replay counts as rejected.
+A. Rejected. Valid range is **-50 to 50°C**. Nothing is stored and state does not move. The starter file has no bad row; `FleetBehaviorTest` posts a 999°C reading and checks the rejection.
 
 **Q. The seed file is not in time order.**
 
-A. Replay **sorts by timestamp**, then truck id, and then uses the same ingest path as a live post. File order is not trusted. Out-of-order behavior is still tested directly, because after the sort the seed itself is in order.
+A. Replay **sorts by timestamp**, then truck id, and then uses the same ingest path as a live post. T-05 is T-01 with the rows shuffled, so without that sort the naive helper misses the alert. After the sort, T-05 opens the same warm alert as T-01. Live out-of-order posts are still tested directly: a late packet is stored and does not move state.
 
 **Q. Two trucks report the same timestamp.**
 
@@ -212,7 +212,7 @@ A. MySQL is the real target (`docker compose`). The `dev` profile is file-backed
 
 **Q. How do I know the seed matches the story?**
 
-A. `FleetBehaviorTest` replays the CSV and checks each truck: Aurora freezing, Borealis open warm after a resolved one, Cirrus open freeze, Drift warming with no alert, Ember one warm alert. A second replay inserts nothing. Engine unit tests cover the boundaries without the database: 14 vs 15 minutes, exactly 30 vs 31 minute gap, supersede, second episode.
+A. `FleetBehaviorTest` replays the starter JSON and checks each truck: T-01, T-04, and T-05 open warm; T-02 and T-03 stay OK. A second replay inserts nothing. Engine unit tests cover the cases this hour does not: 14 vs 15 minutes, exactly 30 vs 31 minute gap, freeze, supersede, second episode.
 
 ---
 
@@ -226,27 +226,27 @@ A. The sensor interval is “every few minutes,” not fixed. Three readings mig
 
 Gave up: simplicity. A counter is easier to explain. It lies when the sampling rate changes.
 
-**Q. Why warn at 5°C instead of the 8°C spec limit?**
+**Q. Why warn at 8°C instead of earlier, at 5°C?**
 
-A. 8°C is already out of the usual 2–8°C pharma band. 5°C is an early warning inside the band so dispatch can act before the load is non-compliant.
+A. Their file treats 6–7°C as normal. 8°C is the top of the usual 2–8°C band, and it is the line that separates T-02’s blip and T-03’s drift from the three sustained trucks. A 5°C line would page all five.
 
-Gave up: fewer alerts. Trucks that sit at 6°C will page even though a strict reading of the label might still say “in range.” If ops wants the legal ceiling, the threshold is one config value.
+Gave up: early warning inside the band. A truck drifting at 7.5°C for an hour stays quiet. If ops wants that page, it is a config change.
 
-**Q. Why two thresholds (5 to open, 4 to close) instead of one?**
+**Q. Why two thresholds (8 to open, 7 to close) instead of one?**
 
-A. A single line at 5°C flaps. 5.1 opens, 4.9 closes, 5.1 opens again. Hysteresis makes recovery mean “clearly cooler,” not “touched the line once.”
+A. A single line at 8°C flaps. 8.1 opens, 7.9 closes, 8.1 opens again. Hysteresis makes recovery mean “clearly cooler,” not “touched the line once.”
 
-Gave up: a dead zone. An open alert at 4.5°C stays open until it is at or below 4°C for 10 minutes. I would rather leave a page up than flap.
+Gave up: a dead zone. An open alert at 7.5°C stays open until it is at or below 7°C for 10 minutes. I would rather leave a page up than flap. T-04 ends at 7.2°C, so that page stays open.
 
 **Q. Why the same pattern for freeze, with 2°C to open and 3°C to close?**
 
 A. Freeze is the other way the cargo is destroyed, and the flap problem is identical. One policy shape, two directions.
 
-Gave up: scope. The brief only required warm. I added freeze because the domain needs it, and I documented it as a choice. The dashboard OK band (3–5°C) is narrower than 2–8°C because of those two hysteresis gaps. 2.5°C shows Watch, not OK.
+Gave up: scope. The brief only required warm. I added freeze because the domain needs it, and I documented it as a choice. This hour never goes below 5.8°C, so the demo does not show a freeze page. The dashboard OK band (3–8°C) is narrower than 2–8°C on the cold side because of freeze hysteresis. 2.5°C shows Watch, not OK.
 
 **Q. Why one open alert per truck instead of one warm and one freeze at the same time?**
 
-A. The box cannot be above 5 and below 2 at once. Two open rows train people to ignore the inbox. A real swing closes the old alert as `SUPERSEDED` and opens the new type.
+A. The box cannot be above 8 and below 2 at once. Two open rows train people to ignore the inbox. A real swing closes the old alert as `SUPERSEDED` and opens the new type.
 
 Gave up: history of both being “open” together. The superseded row is still in the list, so the swing is visible. A five-minute dip the other way does not close the current page.
 
@@ -313,7 +313,7 @@ Say this, then stop:
 3. Name the assumption.
 4. Name what you would ask Priya Shah before changing it.
 
-Example: “4.5°C with an open warm alert stays open, because recovery is 4°C for 10 minutes, not ‘dipped under 5 once.’ If ops wants it to clear at 5, I would remove hysteresis and accept flapping. I would not silently change that in the room.”
+Example: “7.5°C with an open warm alert stays open, because recovery is 7°C for 10 minutes, not ‘dipped under 8 once.’ If ops wants it to clear at 8, I would remove hysteresis and accept flapping. I would not silently change that in the room.”
 
 ---
 
@@ -321,12 +321,12 @@ Example: “4.5°C with an open warm alert stays open, because recovery is 4°C 
 
 | Situation | Result |
 | --- | --- |
-| 8 min above 5°C | No alert (Warming, then clear) |
-| 15 min above 5°C | One HIGH_TEMP, peak tracked |
+| 10 min above 8°C | No alert (Warming, then clear). T-02 and T-04’s first spike |
+| 15 min above 8°C | One HIGH_TEMP, peak tracked. T-01, T-04, T-05 |
 | Still hot for hours | Same open alert |
-| Recovers ≤4°C for 10 min, fails again | Second alert |
-| Sits at 4.5°C while open | Stays open |
-| Exactly 5.0 or exactly 2.0 | Not a violation |
+| Recovers ≤7°C for 10 min, fails again | Second alert |
+| Sits at 7.5°C while open | Stays open |
+| Exactly 8.0 or exactly 2.0 | Not a violation |
 | 2.5°C all day | Watch, no alert |
 | Gap > 30 min while only warming | Timer restarts, no alert yet |
 | Gap > 30 min while already open | Alert stays open |
@@ -344,8 +344,8 @@ Example: “4.5°C with an open warm alert stays open, because recovery is 4°C 
 | They suggest | You chose | What you gave up |
 | --- | --- | --- |
 | 3 hot readings | 15 min of sensor time | A simpler counter |
-| Alert at 8°C | Alert above 5°C | Fewer pages |
-| One threshold | 5 open / 4 close | A dead zone at 4.5°C |
+| Alert at 5°C | Alert above 8°C | Early warning inside the band |
+| One threshold | 8 open / 7 close | A dead zone at 7.5°C |
 | Two open alerts | One, else supersede | Both “open” at once |
 | Bridge the gap | Reset after >30 min | Recall across an outage |
 | Drop late packets | Store, don’t apply | Late spikes don’t move state |
